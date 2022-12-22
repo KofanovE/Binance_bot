@@ -11,42 +11,70 @@ from futures_sign import send_signed_request, send_public_request
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
 from cred import KEY, SECRET
 import requests
+from math import log10, floor
 
 from binance_functions import *
 from Indicators import *
 
 global client
-symbol = 'ETHUSDT'
+# symbol = 'ETHUSDT'
 client = Client(KEY, SECRET)
 
-maxposition = 0.006
+# maxposition = 0.006
+balans = 16
 stop_percent = 0.003  # 0.01 = 1%
 eth_proffit_array = [[6, 1], [9, 1], [12, 2], [18, 2], [24, 2], [30, 1], [40, 1], [40, 0]]
 proffit_array = copy.copy(eth_proffit_array)
 
 pointer = str(random.randint(1000, 9999))
+exchange_info = client.get_exchange_info()
+coin_list = []
 
+
+for s in exchange_info['symbols']:
+    if s['symbol'][-4:] == 'USDT':
+        coin_list.append(s['symbol'])
+
+num_symbol = 0
 
 def main(step):
-    global proffit_array, trailing_price
-
+    global proffit_array, trailing_price, num_symbol, coin_list
 
     try:
+
+        if num_symbol == len(coin_list) - 1:
+            num_symbol = 0
+        symbol = coin_list[num_symbol]
+        open_sl = ""
         position = get_opened_positions(symbol)                       # Open new position
         open_sl = position[0]
+
         if open_sl == "":         # no position
             trailing_price = 0
-            prt('No open position')
+            maxposition = 0
+            prt(f'{num_symbol}. {symbol}  - No open position')
             # close all stop loss orders
             check_and_close_orders(symbol)                 # close all opened positions
             signal = check_if_signal(symbol)               # check Long or Short signal
             proffit_array = copy.copy(eth_proffit_array)
 
-            if signal == "long":
-                open_position(symbol, 'long', maxposition)
+            if signal:
+                current_price = get_symbol_price(symbol)
+                maxposition = round_to_1(balans / current_price)
+                print(maxposition)
 
+
+
+
+            if signal == "long":
+                prt(f'{num_symbol}. {symbol}  - Open Long')
+                print(symbol, 'long', maxposition)
+                open_position(symbol, 'long', maxposition)
             elif signal == 'short':
+                prt(f'{num_symbol}. {symbol}  - Open Short')
                 open_position(symbol, 'short', maxposition)
+            else:
+                num_symbol += 1
 
 
         else:                                             # If position is opened
@@ -100,11 +128,17 @@ def main(step):
 
     except:
         prt('\n\nSomething went wrong. Continuig...')
+        if not open_sl:
+            num_symbol += 1
+
+
 
 def prt(message):
     # telegram message
     print(pointer + ':   ' + message)
 
+def round_to_1(x):
+    return round(x, -int(floor(log10(abs(x)))))
 
 starttime = time.time()
 timeout = time.time() + 60 * 60 * 24 # time working boot = 24 hours
@@ -119,7 +153,7 @@ while time.time() <= timeout:
         counterr += 1
         if counterr > 5:
             counterr = 1
-        time.sleep(20 - ((time.time() - starttime) % 20.0)) # 1 minute interval between each new execution
+        time.sleep(5 - ((time.time() - starttime) % 5.0)) # 1 minute interval between each new execution
     except KeyboardInterrupt:
         print('\n\KeyboardInterrupt. Stopping.')
         exit()
