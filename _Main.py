@@ -20,7 +20,7 @@ symbol = 'ETHUSDT'
 client = Client(KEY, SECRET)
 
 maxposition = 0.006
-stop_percent = 0.001  # 0.01 = 1%
+stop_percent = 0.003  # 0.01 = 1%
 eth_proffit_array = [[6, 1], [9, 1], [12, 2], [18, 2], [24, 2], [30, 1], [40, 1], [40, 0]]
 proffit_array = copy.copy(eth_proffit_array)
 
@@ -28,12 +28,14 @@ pointer = str(random.randint(1000, 9999))
 
 
 def main(step):
-    global proffit_array
+    global proffit_array, trailing_price
+
 
     try:
         position = get_opened_positions(symbol)                       # Open new position
         open_sl = position[0]
         if open_sl == "":         # no position
+            trailing_price = 0
             prt('No open position')
             # close all stop loss orders
             check_and_close_orders(symbol)                 # close all opened positions
@@ -54,10 +56,12 @@ def main(step):
             quantity = position[1]                          # get information about current number of opened positions
             prt('Founded open position ' + open_sl)
             print('Quantity ', str(quantity))
+            if current_price > trailing_price:
+                trailing_price = current_price
 
 
             if open_sl == "long":
-                stop_price = entry_price * (1 - stop_percent)     # Found stop_price
+                stop_price = trailing_price * (1 - stop_percent)     # Found stop_price
                 if current_price < stop_price:
                     #stop Loss
                     close_position(symbol, 'long', abs(quantity))
@@ -76,7 +80,7 @@ def main(step):
 
 
             if open_sl == "short":
-                stop_price = entry_price * (1 + stop_percent)
+                stop_price = trailing_price * (1 + stop_percent)
 
                 if current_price > stop_price:
                     # stop Loss
@@ -91,6 +95,8 @@ def main(step):
                             # take profit
                             close_position(symbol, 'short', abs(round(maxposition * (contracts / 10), 3)))
                             del proffit_array[0]
+
+            print(entry_price, current_price, stop_price, entry_price + temp_arr[0][0])
 
     except:
         prt('\n\nSomething went wrong. Continuig...')
