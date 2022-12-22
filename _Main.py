@@ -105,10 +105,12 @@ def prt(message):
     # telegram message
     print(pointer + ':   ' + message)
 
+
 starttime = time.time()
 timeout = time.time() + 60 * 60 * 24 # time working boot = 24 hours
 counterr = 1
 trailing_price = 0
+
 
 while time.time() <= timeout:
     try:

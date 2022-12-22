@@ -132,3 +132,5 @@ def get_symbol_price(symbol):
     prices = client.get_all_tickers()
     df = pd.DataFrame(prices)
     return float(df[df['symbol'] == symbol]['price'])
+
+

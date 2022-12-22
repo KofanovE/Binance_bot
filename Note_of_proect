@@ -2,7 +2,20 @@
 - cannot normaly test programm, becouse alfavantage closed free intraday statistic -> faster make realization with ussing binance
 22/12/'22
 - all right. program is running. Next speps:
-        a. trailing stop
+        +  trailing stop
         b. universal arrays for take profit
         c. look for coins with signals
+
+        example:
+
+                from binance.client import Client
+
+                api_key = "xxx"
+                api_secret = "xxx"
+
+                client = Client(api_key, api_secret)
+                exchange_info = client.get_exchange_info()
+                for s in exchange_info['symbols']:
+                    print(s['symbol'])
+
         d. log of trading
