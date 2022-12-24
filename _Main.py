@@ -79,6 +79,7 @@ def main(step):
 
             if signal:
                 current_price = get_symbol_price(symbol)
+                trailing_price = current_price
                 maxposition = round_to_1(balans / current_price)
                 proffit_array = [[round_to_1(current_price * step_percent[0]), 1],
                                  [round_to_1(current_price * step_percent[1]), 1],
@@ -114,12 +115,12 @@ def main(step):
             quantity = position[1]                          # get information about current number of opened positions
             logger.info(f"Founded open position: {num_symbol}.{symbol} : {quantity}({open_sl})")
             prt('Founded open position ' + open_sl)
-            if current_price > trailing_price:
-                trailing_price = current_price
-                logger.debug(f"Price of trailing stop: {trailing_price}")
 
 
             if open_sl == "long":
+                if current_price > trailing_price:
+                    trailing_price = current_price
+                    logger.debug(f"Price of trailing stop: {trailing_price}")
                 stop_price = trailing_price * (1 - stop_percent)     # Found stop_price
                 proffit_point = entry_price + proffit_array[0][0]
                 if current_price < stop_price:
@@ -139,6 +140,9 @@ def main(step):
 
 
             if open_sl == "short":
+                if current_price < trailing_price:
+                    trailing_price = current_price
+                    logger.debug(f"Price of trailing stop: {trailing_price}")
                 stop_price = trailing_price * (1 + stop_percent)
                 proffit_point = entry_price - proffit_array[0][0]
                 if current_price > stop_price:
