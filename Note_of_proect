@@ -1,21 +1,24 @@
 10/12/'22
 - cannot normaly test programm, becouse alfavantage closed free intraday statistic -> faster make realization with ussing binance
 22/12/'22
-- all right. program is running. Next speps:
+- all right. program is running. Next steps:
         +  trailing stop
-        b. universal arrays for take profit
-        c. look for coins with signals
+        + universal arrays for take profit
+        + look for coins with signals
+        + logging of trading
+24/12/'22
+- all right. program is running with all coins. Next steps:
+        a. when script is starting, it must close all opened positions
+            it must start to work, only when position is closed
+        b. get data about all trades
+            think, it must be cvs file from DataFrame
+            Symbol|Date_open|Price_open|Chanel_BTC|Slope_BTC|Current_chanel|Current_slope|max_price|min_price|Take_profit|Close_wallet|Date_close|Price_close|
+        c. get information about BTC.
+            If BTC ready to go in long or short, it must be fixed in flag and send in indicators functions.
+            But only after getting data about all trades.
+        d. enable trailing stop binance, when position is opened
+        e. enable also all profit_list
+        f. parallel work with same positions
+        i. need more information about slope of BTC
 
-        example:
-
-                from binance.client import Client
-
-                api_key = "xxx"
-                api_secret = "xxx"
-
-                client = Client(api_key, api_secret)
-                exchange_info = client.get_exchange_info()
-                for s in exchange_info['symbols']:
-                    print(s['symbol'])
-
-        d. log of trading
+- warning. Look at the trailing_price in the line 117. It must be differently for long and short positions.

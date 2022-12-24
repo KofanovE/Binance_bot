@@ -118,7 +118,7 @@ def get_opened_positions(symbol): # function gettion information about opened pr
         pos = 'short'
     else:
         pos = ""
-    return [pos, a, profit, leverage, balance, round(float(entryprice), 3), 0], True
+    return [pos, a, profit, leverage, balance, round(float(entryprice), 3), 0]
 
 def check_and_close_orders(symbol):
     global isStop

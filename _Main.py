@@ -47,12 +47,12 @@ for s in exchange_info['symbols']:
 num_symbol = 0
 step_percent = [0.005, 0.0075, 0.01, 0.013, 0.018, 0.025, 0.035]
 # eth_proffit_array = [[6, 1], [9, 1], [12, 2], [18, 2], [24, 2], [30, 1], [40, 1], [40, 0]]
-proffit_array = copy.copy(eth_proffit_array)
+# proffit_array = copy.copy(eth_proffit_array)
 
 
 
 def main(step):
-    global proffit_array, trailing_price, num_symbol, coin_list
+    global proffit_array, trailing_price, num_symbol, coin_list, step_percent
 
 
     try:
@@ -74,6 +74,7 @@ def main(step):
             check_and_close_orders(symbol)                 # close all opened positions
             signal = check_if_signal(symbol)               # check Long or Short signal
             logger.debug(f"Get signal: {symbol} {signal}")
+            proffit_point = 0
 
 
             if signal:
@@ -120,11 +121,11 @@ def main(step):
 
             if open_sl == "long":
                 stop_price = trailing_price * (1 - stop_percent)     # Found stop_price
+                proffit_point = entry_price + proffit_array[0][0]
                 if current_price < stop_price:
                     #stop Loss
                     logger.info(f"Long -> Stop Loss: {current_price} < {stop_price}")
                     close_position(symbol, 'long', abs(quantity))
-                    proffit_array = copy.copy(eth_proffit_array)
                 else:
                     temp_arr = copy.copy(proffit_array)
                     for j in range(0, len(temp_arr) - 1):
@@ -139,12 +140,11 @@ def main(step):
 
             if open_sl == "short":
                 stop_price = trailing_price * (1 + stop_percent)
-
+                proffit_point = entry_price - proffit_array[0][0]
                 if current_price > stop_price:
                     # stop Loss
                     logger.info(f"Short -> Stop Loss: {current_price} > {stop_price}")
                     close_position(symbol, 'short', abs(quantity))
-                    proffit_array = copy.copy(eth_proffit_array)
                 else:
                     temp_arr = copy.copy(proffit_array)
                     for j in range(0, len(temp_arr) - 1):
@@ -156,12 +156,12 @@ def main(step):
                             close_position(symbol, 'short', abs(round(maxposition * (contracts / 10), 3)))
                             del proffit_array[0]
 
-            logger.debug(f"Entry: {entry_price}, Current: {current_price}, Stop: {stop_price}, Take: {entry_price + temp_arr[0][0]}")
-            print(entry_price, current_price, stop_price, entry_price + temp_arr[0][0])
+            logger.debug(f"Entry: {entry_price}, Current: {current_price}, Stop: {stop_price}, Take: {proffit_point}")
+            print(entry_price, current_price, stop_price, proffit_point)
 
     except:
         logger.error("Information about error: ", exc_info=True)
-        prt('\n\nSomething went wrong. Continuig...')
+        prt('\n\nSomething went wrong. Continuing...')
         if not open_sl:
             num_symbol += 1
 
@@ -182,6 +182,7 @@ trailing_price = 0
 
 while time.time() <= timeout:
     try:
+        logger.info(f"______________________________________________________________________________________________________________")
         logger.info(f"Script continue running at {time.strftime('%d.%m.%Y  %H:%M:%S', time.localtime(time.time()))}")
         prt("script continue running at "+time.strftime('%Y - %m - %d %H:%M:%S', time.localtime(time.time())))
         main(counterr)
