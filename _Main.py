@@ -45,8 +45,8 @@ for s in exchange_info['symbols']:
     if s['symbol'][-4:] == 'USDT':
         coin_list.append(s['symbol'])
 num_symbol = 0
-
-eth_proffit_array = [[6, 1], [9, 1], [12, 2], [18, 2], [24, 2], [30, 1], [40, 1], [40, 0]]
+step_percent = [0.005, 0.0075, 0.01, 0.013, 0.018, 0.025, 0.035]
+# eth_proffit_array = [[6, 1], [9, 1], [12, 2], [18, 2], [24, 2], [30, 1], [40, 1], [40, 0]]
 proffit_array = copy.copy(eth_proffit_array)
 
 
@@ -73,15 +73,23 @@ def main(step):
             # close all stop loss orders
             check_and_close_orders(symbol)                 # close all opened positions
             signal = check_if_signal(symbol)               # check Long or Short signal
-            proffit_array = copy.copy(eth_proffit_array)
             logger.debug(f"Get signal: {symbol} {signal}")
-            logger.info(f"Proffit array: {proffit_array}")
+
 
             if signal:
                 current_price = get_symbol_price(symbol)
                 maxposition = round_to_1(balans / current_price)
+                proffit_array = [[round_to_1(current_price * step_percent[0]), 1],
+                                 [round_to_1(current_price * step_percent[1]), 1],
+                                 [round_to_1(current_price * step_percent[2]), 2],
+                                 [round_to_1(current_price * step_percent[3]), 2],
+                                 [round_to_1(current_price * step_percent[4]), 2],
+                                 [round_to_1(current_price * step_percent[5]), 1],
+                                 [round_to_1(current_price * step_percent[6]), 1],
+                                 [round_to_1(current_price * step_percent[6]), 0]]
                 print(maxposition)
                 logger.info(f"Position: {maxposition}")
+                logger.info(f"Proffit array: {proffit_array}")
 
 
 
@@ -99,7 +107,7 @@ def main(step):
                 num_symbol += 1
 
 
-        else:                                             # If position is opened
+        else:                                               # If position is opened
             entry_price = position[5]                       # check enter price
             current_price = get_symbol_price(symbol)        # check current price
             quantity = position[1]                          # get information about current number of opened positions
