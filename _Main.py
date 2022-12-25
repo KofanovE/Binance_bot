@@ -205,7 +205,7 @@ while time.time() <= timeout:
         counterr += 1
         if counterr > 5:
             counterr = 1
-        time.sleep(5 - ((time.time() - starttime) % 5.0)) # 1 minute interval between each new execution
+        time.sleep(2 - ((time.time() - starttime) % 2.0)) # 1 minute interval between each new execution
     except KeyboardInterrupt:
         logger.warning(f"KeyboardInterrupt. Stopping: {time.strftime('%d.%m.%Y  %H:%M:%S', time.localtime(time.time()))}")
         print('\n\KeyboardInterrupt. Stopping.')
