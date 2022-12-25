@@ -21,5 +21,9 @@
         f. parallel work with same positions
         i. need more information about slope of BTC
 
+25/12/'22
 + warning. Look at the trailing_price in the line 117. It must be differently for long and short positions.
-- trailing stop with +/- 0,3 %, when trailing stop is more profitable than stop price (stop price = entry price with +/- 0,1) %
++ trailing stop with +/- 0,3 %, when trailing stop is more profitable than stop price (stop price = entry price with +/- 0,1) %
+- getting real data about current coin in csv file and handly checking it. Before trading!
+- if data isn't right, getting mechanism of sort this coin
+- adding in program black list with mechanism of adding coins in it

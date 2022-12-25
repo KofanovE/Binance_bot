@@ -48,47 +48,65 @@ num_symbol = 0
 step_percent = [0.005, 0.0075, 0.01, 0.013, 0.018, 0.025, 0.035]
 # eth_proffit_array = [[6, 1], [9, 1], [12, 2], [18, 2], [24, 2], [30, 1], [40, 1], [40, 0]]
 # proffit_array = copy.copy(eth_proffit_array)
-
+trailing_flag = False
 
 
 def main(step):
-    global proffit_array, trailing_price, num_symbol, coin_list, step_percent, maxposition
+    global proffit_array, trailing_price, num_symbol, coin_list, step_percent, maxposition, trailing_flag, stop_percent
 
 
     try:
+        # New period of main program
 
         if num_symbol == len(coin_list) - 1:      # Choice of coin from coins_list
             num_symbol = 0
         symbol = coin_list[num_symbol]
-        open_sl = ""
         logger.info(f"Coin: {symbol}")
+
+        open_sl = ""                              # Getting empty transaction_flag, if cannot connect to binance
         position = get_opened_positions(symbol)   # Getting DF of new coin
         open_sl = position[0]
         logger.debug(f"Current position: {open_sl}")
-        if open_sl == "":         # no position
+
+        if trailing_flag:                        # Getting stop percent with and without trailing_stop
+            stop_percent = 0.003  # 0.01 = 1%
+        else:
+            stop_percent = 0.001
+
+
+
+
+        if open_sl == "":
+            # no position
+
             trailing_price = 0
+            trailing_flag = False
             maxposition = 0
             logger.debug(f"No open position: {num_symbol}.{symbol}")
             prt(f'{num_symbol}. {symbol}  - No open position')
+
             # close all stop loss orders
-            check_and_close_orders(symbol)                 # close all opened positions
-            signal = check_if_signal(symbol)               # check Long or Short signal
+            check_and_close_orders(symbol)                 # ! close all opened positions. Function doesn`t work normaly
+
+            signal = check_if_signal(symbol)               # check Long or Short signal (function from Indicators.py)
             logger.debug(f"Get signal: {symbol} {signal}")
-            proffit_point = 0
+
 
 
             if signal:
+                # no position, but there is a not_None signal
+
                 current_price = get_symbol_price(symbol)
                 trailing_price = current_price
-                maxposition = round_to_1(balans / current_price)
-                proffit_array = [[round_to_1(current_price * step_percent[0]), 1],
-                                 [round_to_1(current_price * step_percent[1]), 1],
-                                 [round_to_1(current_price * step_percent[2]), 2],
-                                 [round_to_1(current_price * step_percent[3]), 2],
-                                 [round_to_1(current_price * step_percent[4]), 2],
-                                 [round_to_1(current_price * step_percent[5]), 1],
-                                 [round_to_1(current_price * step_percent[6]), 1],
-                                 [round_to_1(current_price * step_percent[6]), 0]]
+                maxposition = balans / current_price
+                proffit_array = [[current_price * step_percent[0], 1],
+                                 [current_price * step_percent[1], 1],
+                                 [current_price * step_percent[2], 2],
+                                 [current_price * step_percent[3], 2],
+                                 [current_price * step_percent[4], 2],
+                                 [current_price * step_percent[5], 1],
+                                 [current_price * step_percent[6], 1],
+                                 [current_price * step_percent[6], 0]]
                 print(maxposition)
                 logger.info(f"Position: {maxposition}")
                 logger.info(f"Proffit array: {proffit_array}")
@@ -118,10 +136,11 @@ def main(step):
 
 
             if open_sl == "long":
-                if current_price > trailing_price:
+                if trailing_flag and current_price > trailing_price:
                     trailing_price = current_price
                     logger.debug(f"Price of trailing stop: {trailing_price}")
                 stop_price = trailing_price * (1 - stop_percent)     # Found stop_price
+
                 proffit_point = entry_price + proffit_array[0][0]
                 if current_price < stop_price:
                     #stop Loss
@@ -134,13 +153,14 @@ def main(step):
                         contracts = temp_arr[j][1]
                         if current_price > entry_price + delta:
                             #take profit
+                            trailing_flag = True
                             logger.info(f"Long -> Take Profit ({abs(round(maxposition * (contracts / 10), 3))}): {current_price} > {entry_price + delta}")
                             close_position(symbol, 'long', abs(round(maxposition * (contracts / 10), 3)))
                             del proffit_array[0]
 
 
             if open_sl == "short":
-                if current_price < trailing_price:
+                if trailing_flag and current_price < trailing_price:
                     trailing_price = current_price
                     logger.debug(f"Price of trailing stop: {trailing_price}")
                 stop_price = trailing_price * (1 + stop_percent)
@@ -156,6 +176,7 @@ def main(step):
                         contracts = temp_arr[j][1]
                         if current_price < entry_price - delta:
                             # take profit
+                            trailing_flag = True
                             logger.info(f"Short -> Take Profit ({abs(round(maxposition * (contracts / 10), 3))}): {current_price} < {entry_price - delta}")
                             close_position(symbol, 'short', abs(round(maxposition * (contracts / 10), 3)))
                             del proffit_array[0]
