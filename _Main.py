@@ -34,7 +34,7 @@ client = Client(KEY, SECRET)
 
 # maxposition = 0.006
 balans = 16
-stop_percent = 0.003  # 0.01 = 1%
+stop_percent = 0.001  # 0.01 = 1%
 
 pointer = str(random.randint(1000, 9999))
 
@@ -52,7 +52,7 @@ step_percent = [0.005, 0.0075, 0.01, 0.013, 0.018, 0.025, 0.035]
 
 
 def main(step):
-    global proffit_array, trailing_price, num_symbol, coin_list, step_percent
+    global proffit_array, trailing_price, num_symbol, coin_list, step_percent, maxposition
 
 
     try:
@@ -189,6 +189,18 @@ while time.time() <= timeout:
         logger.info(f"______________________________________________________________________________________________________________")
         logger.info(f"Script continue running at {time.strftime('%d.%m.%Y  %H:%M:%S', time.localtime(time.time()))}")
         prt("script continue running at "+time.strftime('%Y - %m - %d %H:%M:%S', time.localtime(time.time())))
+        # trades = []                           # In futures - get opened positions
+        # for i in coin_list:
+        #     print(i)
+        #     tickerTransactions = client.get_all_orders(symbol=i)
+        #     if tickerTransactions:
+        #         trades.append(tickerTransactions)
+        #         print("ok: ", trades)
+        #     time.sleep(0.2)
+
+
+
+
         main(counterr)
         counterr += 1
         if counterr > 5:

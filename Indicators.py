@@ -104,7 +104,7 @@ def check_if_signal(symbol):
         # found bottom -  OPEN LONG
         if prepared_df['position_in_channel'][i-1] < 0.2:
             #close to top of channel
-            if prepared_df['slope'][i-1] < 20:
+            if prepared_df['slope'][i-1] < -20:
                 #found a good enter point for Long
                 signal = 'long'
 
